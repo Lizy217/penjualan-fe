@@ -1,226 +1,190 @@
-import React, { useState } from "react";
-import { getProdukById, updateProduk } from "../../services/ProdukService";
-import { Link, useNavigate } from "react-router-dom";
+// import React, { useState, useEffect } from "react";
+// // Import useParams untuk membaca ID dari URL
+// import { Link, useNavigate, useParams } from "react-router-dom";
 
-function UpdateProdukComponent() {
-    const navigate = useNavigate();
+// function UpdateProdukComponent() {
+//     const navigate = useNavigate();
+//     // 1. Mengambil ID Produk dari URL
+//     const { id: idProdukUrl } = useParams();
+//     const [idProduk, setIdProduk] = useState(""); // Akan diisi dari URL
+//     const [namaProduk, setNamaProduk] = useState("");
+//     // Mengubah JenisProduk ke ID Jenis Produk (sesuai algoritma PHP)
+//     const [idJenisProduk, setIdJenisProduk] = useState("");
+//     // Mengubah Stok ke Stok Produk (sesuai algoritma PHP)
+//     const [stokProduk, setStokProduk] = useState("");
+//     // Mengubah Harga Beli/Jual ke Harga Produk (asumsi hanya satu field Harga di form PHP)
+//     const [hargaProduk, setHargaProduk] = useState("");
+//     // Menambahkan Potongan Harga Produk
+//     const [potonganHargaProduk, setPotonganHargaProduk] = useState("");
 
-    const [cari, setCari] = useState("");
-    const [produkDitemukan, setProdukDitemukan] = useState(false);
-    const [idProduk, setIdProduk] = useState("");
+//     const [error, setError] = useState("");
+//     const [successMessage, setSuccessMessage] = useState("");
+//     const [loading, setLoading] = useState(true); // Mulai dengan loading=true
 
-    const [namaProduk, setNamaProduk] = useState("");
-    const [jenisProduk, setJenisProduk] = useState("");
-    const [stok, setStok] = useState("");
-    const [hargaBeli, sethargaBeli] = useState("");
-    const [hargaJual, sethargaJual] = useState("");
-    const [status, setStatus] = useState("Tersedia");
+//     useEffect(() => {
+//         // Cek jika ID produk dari URL ada
+//         if (idProdukUrl) {
+//             setIdProduk(idProdukUrl);
+//             fetchProdukData(idProdukUrl);
+//         } else {
+//             setError("ID Produk tidak ditemukan di URL.");
+//             setLoading(false);
+//         }
+//     }, [idProdukUrl]); // Jalankan hanya saat idProdukUrl berubah
 
-    const [error, setError] = useState("");
-    const [successMessage, setSuccessMessage] = useState("");
-    const [loading, setLoading] = useState(false);
+//     // Fungsi untuk memuat data produk
+//     const fetchProdukData = async (id) => {
+//         setLoading(true);
+//         setError("");
+//         try {
+//             const response = await getProdukById(id);
+//             const produk = response.data;
 
-    // Fungsi untuk mencari produk berdasarkan ID
-    const handleCariProduk = async (e) => {
-        e.preventDefault();
-        setError("");
-        setSuccessMessage("");
-        setLoading(true);
+//             // Memastikan penamaan field sesuai dengan API Anda (MUNGKIN perlu disesuaikan)
+//             setNamaProduk(produk.nama_produk || "");
+//             // Asumsi field jenis_produk di API adalah ID Jenis Produk
+//             setIdJenisProduk(produk.id_jenis_produk || produk.jenis_produk || "");
+//             setStokProduk(produk.stok_produk || produk.stok || "");
+//             // Asumsi Harga Produk = Harga Jual (sesuai field harga_produk di PHP)
+//             setHargaProduk(produk.harga_produk || produk.harga_jual || "");
+//             setPotonganHargaProduk(produk.potongan_harga_produk || 0);
 
-        if (!cari.trim()) {
-            setError("Masukkan ID produk yang ingin dicari!");
-            setLoading(false);
-            return;
-        }
+//             setLoading(false);
+//         } catch (err) {
+//             console.error("Error fetching product:", err);
+//             setError("Gagal memuat data produk. Pastikan ID benar dan API berjalan.");
+//             setLoading(false);
+//         }
+//     };
 
-        try {
-            const response = await getProdukById(cari);
-            const produk = response.data;
+//     // Fungsi untuk submit update produk
+//     const handleSubmit = async (e) => {
+//         e.preventDefault();
+//         setError("");
+//         setSuccessMessage("");
+//         setLoading(true);
 
-            // Jika produk ditemukan, isi form dengan data produk
-            setIdProduk(cari);
-            setNamaProduk(produk.nama_produk);
-            setJenisProduk(produk.jenis_produk);
-            setStok(produk.stok);
-            sethargaBeli(produk.harga_beli);
-            sethargaJual(produk.harga_jual);
-            setStatus(produk.status);
-            setProdukDitemukan(true);
-            setSuccessMessage(`Produk ditemukan: ${produk.nama_produk}`);
-            setLoading(false);
-        } catch (error) {
-            console.error("Error fetching product:", error);
-            setError("Produk dengan ID tersebut tidak ditemukan!");
-            setProdukDitemukan(false);
-            setLoading(false);
+//         try {
+//             const updatedProduct = {
+//                 id_produk: idProduk,
+//                 nama_produk: namaProduk,
+//                 id_jenis_produk: idJenisProduk, // Field di API harus disesuaikan
+//                 stok_produk: stokProduk, // Field di API harus disesuaikan
+//                 harga_produk: hargaProduk, // Field di API harus disesuaikan
+//                 potongan_harga_produk: potonganHargaProduk, // Field di API harus disesuaikan
+//                 // Hapus field yang tidak ada di form (misalnya harga_beli, status)
+//             };
 
-            // Reset form
-            setNamaProduk("");
-            setJenisProduk("");
-            setStok("");
-            sethargaBeli("");
-            sethargaJual("");
-            setStatus("Tersedia");
-        }
-    };
+//             await updateProduk(idProduk, updatedProduct);
+//             setSuccessMessage("Produk berhasil diupdate!");
 
-    // Fungsi untuk submit update produk
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError("");
-        setSuccessMessage("");
+//             // Redirect ke list produk setelah 2 detik
+//             setTimeout(() => {
+//                 navigate("/list-produk");
+//             }, 2000);
+//         } catch (err) {
+//             console.error("Error updating product:", err);
+//             setError("Gagal mengupdate produk. Silahkan cek koneksi dan data.");
+//             setLoading(false);
+//         }
+//     };
 
-        try {
-            const updatedProduct = {
-                nama_produk: namaProduk,
-                jenis_produk: jenisProduk,
-                stok: stok,
-                harga_beli: hargaBeli,
-                harga_jual: hargaJual,
-                status: status,
-            };
+//     if (loading) {
+//         return (
+//             <div className="container mt-5 text-center">
+//                 <div className="spinner-border text-primary" role="status">
+//                     <span className="visually-hidden">Loading...</span>
+//                 </div>
+//                 <p className="mt-2">Memuat data produk...</p>
+//             </div>
+//         );
+//     }
 
-            await updateProduk(idProduk, updatedProduct);
-            setSuccessMessage("Produk berhasil diupdate!");
+//     if (error && !idProduk) {
+//         return (
+//             <div className="container mt-4">
+//                 <div className="alert alert-danger">Error: {error}</div>
+//                 <Link to="/list-produk" className="btn btn-secondary">
+//                     Kembali ke List Produk
+//                 </Link>
+//             </div>
+//         );
+//     }
 
-            // Redirect ke list produk setelah 2 detik
-            setTimeout(() => {
-                navigate("/list-produk");
-            }, 2000);
-        } catch (error) {
-            console.error("Error updating product:", error);
-            setError("Gagal mengupdate produk. Silahkan coba lagi.");
-        }
-    };
+//     return (
+//         <div className="container mt-4">
+//             <h2>Edit Produk (ID: {idProduk})</h2>
 
-    // Fungsi untuk reset pencarian
-    const handleReset = () => {
-        setCari("");
-        setProdukDitemukan(false);
-        setIdProduk("");
-        setNamaProduk("");
-        setJenisProduk("");
-        setStok("");
-        sethargaBeli("");
-        sethargaJual("");
-        setStatus("Tersedia");
-        setError("");
-        setSuccessMessage("");
-    };
+//             {error && <div className="alert alert-danger">{error}</div>}
+//             {successMessage && <div className="alert alert-success">{successMessage}</div>}
 
-    return (
-        <div className="container mt-4">
-            <h2>Update Produk</h2>
+//             <div className="card">
+//                 <div className="card-body">
+//                     <h5 className="card-title">Form Update Produk</h5>
 
-            {error && <div className="alert alert-danger">{error}</div>}
-            {successMessage && <div className="alert alert-success">{successMessage}</div>}
+//                     {/* Menggunakan handleSubmit */}
+//                     <form onSubmit={handleSubmit}>
+//                         {/* ID Product (read-only) */}
+//                         <div className="mb-3">
+//                             <label htmlFor="idProduk" className="form-label">
+//                                 Id Product
+//                             </label>
+//                             {/* Diatur agar read-only seperti di algoritma PHP */}
+//                             <input type="text" className="form-control" id="idProduk" value={idProduk} readOnly />
+//                         </div>
 
-            {/* Form Pencarian Produk */}
-            {!produkDitemukan && (
-                <div className="card mb-4">
-                    <div className="card-body">
-                        <h5 className="card-title">Cari Produk Berdasarkan ID</h5>
-                        <form onSubmit={handleCariProduk}>
-                            <div className="mb-3">
-                                <label htmlFor="cari" className="form-label">
-                                    ID Produk
-                                </label>
-                                <input type="text" className="form-control" id="cari" value={cari} onChange={(e) => setCari(e.target.value)} placeholder="Masukkan ID produk..." disabled={loading} />
-                            </div>
-                            <button type="submit" className="btn btn-primary" disabled={loading}>
-                                {loading ? (
-                                    <>
-                                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                        Mencari...
-                                    </>
-                                ) : (
-                                    "Cari Produk"
-                                )}
-                            </button>
-                            <Link to="/list-produk" className="btn btn-secondary ms-2">
-                                Kembali ke List Produk
-                            </Link>
-                        </form>
-                    </div>
-                </div>
-            )}
+//                         {/* Nama Product */}
+//                         <div className="mb-3">
+//                             <label htmlFor="namaProduk" className="form-label">
+//                                 Nama Product
+//                             </label>
+//                             <input type="text" className="form-control" id="namaProduk" value={namaProduk} onChange={(e) => setNamaProduk(e.target.value)} required />
+//                         </div>
 
-            {/* Form Update Produk - Hanya muncul jika produk ditemukan */}
-            {produkDitemukan && (
-                <div className="card">
-                    <div className="card-body">
-                        <div className="d-flex justify-content-between align-items-center mb-3">
-                            <h5 className="card-title mb-0">Form Update Produk (ID: {idProduk})</h5>
-                            <button type="button" className="btn btn-sm btn-warning" onClick={handleReset}>
-                                Cari Produk Lain
-                            </button>
-                        </div>
+//                         {/* Id Jenis Product */}
+//                         <div className="mb-3">
+//                             <label htmlFor="idJenisProduk" className="form-label">
+//                                 Id Jenis Product
+//                             </label>
+//                             <input type="text" className="form-control" id="idJenisProduk" value={idJenisProduk} onChange={(e) => setIdJenisProduk(e.target.value)} required />
+//                         </div>
 
-                        <form onSubmit={handleSubmit}>
-                            {/* Input Nama Produk */}
-                            <div className="mb-3">
-                                <label htmlFor="namaProduk" className="form-label">
-                                    Nama Produk
-                                </label>
-                                <input type="text" className="form-control" id="namaProduk" value={namaProduk} onChange={(e) => setNamaProduk(e.target.value)} required />
-                            </div>
+//                         {/* Stock Product */}
+//                         <div className="mb-3">
+//                             <label htmlFor="stokProduk" className="form-label">
+//                                 Stock Product
+//                             </label>
+//                             <input type="number" className="form-control" id="stokProduk" value={stokProduk} onChange={(e) => setStokProduk(e.target.value)} required />
+//                         </div>
 
-                            {/* Input Jenis Produk */}
-                            <div className="mb-3">
-                                <label htmlFor="jenisProduk" className="form-label">
-                                    Jenis Produk
-                                </label>
-                                <input type="text" className="form-control" id="jenisProduk" value={jenisProduk} onChange={(e) => setJenisProduk(e.target.value)} required />
-                            </div>
+//                         {/* Harga */}
+//                         <div className="mb-3">
+//                             <label htmlFor="hargaProduk" className="form-label">
+//                                 Harga
+//                             </label>
+//                             <input type="number" className="form-control" id="hargaProduk" value={hargaProduk} onChange={(e) => setHargaProduk(e.target.value)} required />
+//                         </div>
 
-                            {/* Input Stok */}
-                            <div className="mb-3">
-                                <label htmlFor="stok" className="form-label">
-                                    Stok
-                                </label>
-                                <input type="number" className="form-control" id="stok" value={stok} onChange={(e) => setStok(e.target.value)} required />
-                            </div>
+//                         {/* Potongan harga Produk */}
+//                         <div className="mb-3">
+//                             <label htmlFor="potonganHargaProduk" className="form-label">
+//                                 Potongan harga Produk
+//                             </label>
+//                             <input type="number" className="form-control" id="potonganHargaProduk" value={potonganHargaProduk} onChange={(e) => setPotonganHargaProduk(e.target.value)} />
+//                         </div>
 
-                            {/* Input Harga Beli */}
-                            <div className="mb-3">
-                                <label htmlFor="hargaBeli" className="form-label">
-                                    Harga Beli
-                                </label>
-                                <input type="number" className="form-control" id="hargaBeli" value={hargaBeli} onChange={(e) => sethargaBeli(e.target.value)} required />
-                            </div>
+//                         {/* Tombol Update dan Kembali */}
+//                         <button type="submit" className="btn btn-primary" disabled={loading}>
+//                             {loading ? "Updating..." : "Update"}
+//                         </button>
+//                         <Link to="/list-produk" className="btn btn-secondary ms-2">
+//                             Kembali ke List Produk
+//                         </Link>
+//                     </form>
+//                 </div>
+//             </div>
+//         </div>
+//     );
+// }
 
-                            {/* Input Harga Jual */}
-                            <div className="mb-3">
-                                <label htmlFor="hargaJual" className="form-label">
-                                    Harga Jual
-                                </label>
-                                <input type="number" className="form-control" id="hargaJual" value={hargaJual} onChange={(e) => sethargaJual(e.target.value)} required />
-                            </div>
-
-                            {/* Input Status (Dropdown) */}
-                            <div className="mb-3">
-                                <label htmlFor="status" className="form-label">
-                                    Status
-                                </label>
-                                <select className="form-select" id="status" value={status} onChange={(e) => setStatus(e.target.value)}>
-                                    <option value="Tersedia">Tersedia</option>
-                                    <option value="Tidak Tersedia">Tidak Tersedia</option>
-                                </select>
-                            </div>
-
-                            {/* Tombol Submit dan Kembali */}
-                            <button type="submit" className="btn btn-success">
-                                Update Produk
-                            </button>
-                            <Link to="/list-produk" className="btn btn-secondary ms-2">
-                                Kembali ke List Produk
-                            </Link>
-                        </form>
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-}
-
-export default UpdateProdukComponent;
+// export default UpdateProdukComponent;

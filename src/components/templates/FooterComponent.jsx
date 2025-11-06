@@ -10,7 +10,7 @@ function FooterComponent() {
                     <p>{new Date().getFullYear()} Toko Informatika .All rights reserved.</p>
                 </div>
             </div>
-            <div className="d-flex jsutify-content-center">
+            <div className="d-flex justify-content-center">
                 <a href="/" className="me-4 text-reset">
                     Home
                 </a>

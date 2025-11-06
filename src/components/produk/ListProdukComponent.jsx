@@ -1,61 +1,3 @@
-// import React from "react";
-
-// function ListProdukComponent() {
-//     const dummyData = [
-//         {
-//             id: "1",
-//             nama_produk: "Laptop",
-//             jenis_produk: "Infra",
-//             stok: "122",
-//             harga_beli: "20000",
-//             harga_jual: "30000",
-//             status: "Tersedia",
-//         },
-//         {
-//             id: "2",
-//             nama_produk: "HP",
-//             jenis_produk: "Infra",
-//             stok: "1",
-//             harga_beli: "1300.00",
-//             harga_jual: "15000000.00",
-//             status: "Tersedia",
-//         },
-//     ];
-
-//     return (
-//         <div className="container mt-4">
-//             <h2>List Produk</h2>
-//             <table className="table table-striped" border="1" cellPadding="10" cellSpacing="0">
-//                 <thead>
-//                     <tr>
-//                         <th>ID</th>
-//                         <th>Nama Produk</th>
-//                         <th>Jenis Produk</th>
-//                         <th>Stok</th>
-//                         <th>Harga Beli</th>
-//                         <th>Harga Jual</th>
-//                         <th>Status</th>
-//                     </tr>
-//                 </thead>
-//                 <tbody>
-//                     {dummyData.map((item) => (
-//                         <tr key={item.id}>
-//                             <td>{item.id}</td>
-//                             <td>{item.nama_produk}</td>
-//                             <td>{item.jenis_produk}</td>
-//                             <td>{item.stok}</td>
-//                             <td>{item.harga_beli}</td>
-//                             <td>{item.harga_jual}</td>
-//                             <td>{item.status}</td>
-//                         </tr>
-//                     ))}
-//                 </tbody>
-//             </table>
-//         </div>
-//     );
-// }
-// export default ListProdukComponent;
-
 // Fungsi untuk memformat angka menjadi Rupiah (di luar komponen atau di dalam file utils)
 const formatRupiah = (number) => {
     // Pastikan nilai adalah angka, hapus koma/titik yang tidak perlu jika ada
@@ -70,29 +12,63 @@ const formatRupiah = (number) => {
 };
 
 import React, { useEffect, useState } from "react";
-import { listProduk } from "../../services/ProdukService";
+import { listProduk, deleteProduk } from "../../services/ProdukService";
 import { Link } from "react-router-dom";
+import Swal from "sweetalert2";
 
 function ListProdukComponent() {
     const [produkData, setProdukData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    const fetchProduk = async () => {
+        try {
+            const response = await listProduk();
+            setProdukData(response.data);
+        } catch (error) {
+            console.error("Error fetching produk data:", error);
+            setError("Gagal mengambil data produk");
+        } finally {
+            setLoading(false);
+        }
+    };
     useEffect(() => {
-        const fetchProduk = async () => {
-            try {
-                const response = await listProduk();
-                setProdukData(response.data);
-            } catch (error) {
-                console.error("Error fetching produk data:", error);
-                setError("Gagal mengambil data produk");
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchProduk();
     }, []);
+
+    const handleDelete = async (idProduct) => {
+        Swal.fire({
+            title: "yakin ingin menghapus data ini ?",
+            text: "Kamu tidak bisa mengulang kembali!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Ya, Hapus!",
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await deleteProduk(idProduct);
+                    Swal.fire({
+                        title: "Terhapus!",
+                        text: "Data telah berhasil dihapus.",
+                        icon: "success",
+                        timer: 1500,
+                        showConfirmButton: false,
+                    });
+
+                    fetchProduk();
+                } catch (error) {
+                    console.error("Gagal menghapus produk:", error);
+                    Swal.fire({
+                        title: "Gagal!",
+                        text: "Terjadi kesalahan saat menghapus produk.",
+                        icon: "error",
+                    });
+                }
+            }
+        });
+    };
 
     if (loading) {
         return (
@@ -108,12 +84,6 @@ function ListProdukComponent() {
             <Link to="/tambah-produk" className="btn btn-primary me-2 mb-3">
                 Add Produk
             </Link>
-            <Link to="/update-produk" className="btn btn-warning me-2 mb-3">
-                Update
-            </Link>
-            <Link to="/tambah-produk" className="btn btn-danger me-2 mb-3">
-                Delete
-            </Link>
             {error && <div className="alert alert-danger">{error}</div>}
             <table className="table table-striped" border="1" cellPadding="10" cellSpacing="0">
                 <thead>
@@ -125,6 +95,7 @@ function ListProdukComponent() {
                         <th>Harga Beli</th>
                         <th>Harga Jual</th>
                         <th>Status</th>
+                        <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -138,6 +109,17 @@ function ListProdukComponent() {
                                 <td className="text-end">{formatRupiah(item.harga_beli)}</td>
                                 <td className="text-end">{formatRupiah(item.harga_jual)}</td>
                                 <td style={{ textAlign: "left" }}>{item.status}</td>
+                                <td>
+                                    <Link to={`/update-produk/${item.id}`} className="btn btn-warning me-2 mb-3">
+                                        Update
+                                    </Link>
+                                    <Link>
+                                        {" "}
+                                        <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDelete(item.id)}>
+                                            Delete
+                                        </button>
+                                    </Link>
+                                </td>
                             </tr>
                         ))
                     ) : (

@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { addProduk } from "../../services/ProdukService";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { addProduk, getProdukById, updateProduk } from "../../services/ProdukService";
 
 function addProdukComponent() {
     const [namaProduk, setNamaProduk] = useState("");
@@ -12,31 +12,75 @@ function addProdukComponent() {
     const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
 
+    const { id } = useParams();
+
+    useEffect(() => {
+        if (id) {
+            const fetchProduk = async () => {
+                try {
+                    const response = await getProdukById(id);
+                    const data = response.data;
+
+                    setNamaProduk(data.nama_produk);
+                    setJenisProduk(data.jenis_produk);
+                    setStok(data.stok);
+                    sethargaBeli(data.harga_beli);
+                    sethargaJual(data.harga_jual);
+                    setStatus(data.status);
+                } catch (error) {
+                    console.error("Error fetching produk data: ", error);
+                    setError("Gagal mengambil data produk.");
+                }
+            };
+
+            fetchProduk();
+        }
+    }, [id]);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(null);
         setSuccessMessage(null);
 
         try {
-            // mengirim data produ ke API
-            const newProduct = {
-                nama_produk: namaProduk,
-                jenis_produk: jenisProduk,
-                stok: stok,
-                harga_beli: hargaBeli,
-                harga_jual: hargaJual,
-                status: status,
-            };
+            if (id) {
+                const newProduct = {
+                    id: id,
+                    nama_produk: namaProduk,
+                    jenis_produk: jenisProduk,
+                    stok: stok,
+                    harga_beli: hargaBeli,
+                    harga_jual: hargaJual,
+                    status: status,
+                };
 
-            await addProduk(newProduct); //menambahkan fungsi yang akan anda buat di produkService
-            setSuccessMessage("Produk berhasil ditambahkan!");
-            // reset forn setelah berhasil
-            setNamaProduk("");
-            setJenisProduk("");
-            setStok("");
-            sethargaBeli("");
-            sethargaJual("");
-            setStatus("Tersedia");
+                await updateProduk(newProduct);
+                setSuccessMessage("Produk berhasil diubah!");
+                setNamaProduk("");
+                setJenisProduk("");
+                setStok("");
+                sethargaBeli("");
+                sethargaJual("");
+                setStatus("Tersedia");
+            } else {
+                const newProduct = {
+                    nama_produk: namaProduk,
+                    jenis_produk: jenisProduk,
+                    stok: stok,
+                    harga_beli: hargaBeli,
+                    harga_jual: hargaJual,
+                    status: status,
+                };
+
+                await addProduk(newProduct);
+                setSuccessMessage("Produk berhasil ditambahkan!");
+                setNamaProduk("");
+                setJenisProduk("");
+                setStok("");
+                setHargaBeli("");
+                setHargaJual("");
+                setStatus("Tersedia");
+            }
         } catch (error) {
             console.error("Error adding product:", error);
             setError("gagal menambahkan produk. Silahkan Coba Lagi.");
@@ -45,7 +89,7 @@ function addProdukComponent() {
     // Bagian 1: Awal Komponen, Error/Success Message, dan Form
     return (
         <div className="container mt-4">
-            <h2>Tambah Produk</h2>
+            {id ? <h2>Ubah Produk</h2> : <h2>Tambah Produk</h2>}
             {error && <div className="alert alert-danger">{error}</div>}
             {successMessage && <div className="alert alert-success">{successMessage}</div>}
             <form onSubmit={handleSubmit}>
